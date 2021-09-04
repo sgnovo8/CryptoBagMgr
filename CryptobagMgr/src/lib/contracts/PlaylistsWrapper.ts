@@ -1,23 +1,23 @@
 import Web3 from 'web3';
-import * as PlaylistsJSON from '../../../build/contracts/Playlists.json';
-import { Playlists } from '../../types/Playlists';
+import * as CryptobagsJSON from '../../../build/contracts/Cryptobags.json';
+import { Cryptobags } from '../../types/Cryptobags';
 
 const DEFAULT_SEND_OPTIONS = {
     gas: 6000000
 };
 
 const DEPLOYED_CONTRACT_ADDRESS = '0xAFb93EF21bC061a88afB539d5fdD926DB942869A';
-export class PlaylistsWrapper {
+export class CryptobagsWrapper {
     web3: Web3;
 
-    contract: Playlists;
+    contract: Cryptobags;
 
     address: string;
 
     constructor(web3: Web3) {
         this.web3 = web3;
         this.address = DEPLOYED_CONTRACT_ADDRESS;
-        this.contract = new web3.eth.Contract(PlaylistsJSON.abi as any) as any;
+        this.contract = new web3.eth.Contract(CryptobagsJSON.abi as any) as any;
         this.contract.options.address = DEPLOYED_CONTRACT_ADDRESS;
     }
 
@@ -25,26 +25,26 @@ export class PlaylistsWrapper {
         return Boolean(this.address);
     }
 
-    async getTotalPlaylist(fromAddress: string) {
-        const data = await this.contract.methods.totalPlaylist().call({ from: fromAddress });
+    async getTotalCryptobags(fromAddress: string) {
+        const data = await this.contract.methods.totalCryptobags().call({ from: fromAddress });
 
         return parseInt(data, 10);
     }
 
-    async getPlaylist(id: number, fromAddress: string) {
-        const data = await this.contract.methods.playlists(id).call({ from: fromAddress });
+    async getCryptobags(id: number, fromAddress: string) {
+        const data = await this.contract.methods.cryptobag(id).call({ from: fromAddress });
 
-        const newPlaylist = {
+        const newCryptobags = {
             id: Number(data.id),
             name: data.name,
-            songs: Number(data.songs),
+            songs: Number(data.coins),
             creator: data.creator
         };
-        return newPlaylist;
+        return newCryptobags;
     }
 
-    async createPlaylist(name: string, fromAddress: string) {
-        const tx = await this.contract.methods.createPlaylist(name).send({
+    async createCryptobags(name: string, fromAddress: string) {
+        const tx = await this.contract.methods.createCryptobags(name).send({
             ...DEFAULT_SEND_OPTIONS,
             from: fromAddress
         });
@@ -52,8 +52,8 @@ export class PlaylistsWrapper {
         return tx;
     }
 
-    async addSongToPlaylist(name: string, playlistId: number, fromAddress: string) {
-        const tx = await this.contract.methods.addSongToPlaylist(name, playlistId).send({
+    async addSongToCryptobags(name: string, cryptobagId: number, fromAddress: string) {
+        const tx = await this.contract.methods.addCoinToCryptobags(name, cryptobagId).send({
             ...DEFAULT_SEND_OPTIONS,
             from: fromAddress
         });
@@ -61,8 +61,8 @@ export class PlaylistsWrapper {
         return tx;
     }
 
-    async getPlaylistSongs(playlistId: number, fromAddress: string) {
-        const data = await this.contract.methods.getPlaylistSongs(playlistId).call({
+    async getCryptobagsCoins(cryptobagsId: number, fromAddress: string) {
+        const data = await this.contract.methods.getCryptobagsCoins(cryptobagId).call({
             ...DEFAULT_SEND_OPTIONS,
             from: fromAddress
         });
@@ -73,7 +73,7 @@ export class PlaylistsWrapper {
     // async deploy(fromAddress: string) {
     //     const tx = this.contract
     //         .deploy({
-    //             data: PlaylistsJSON.bytecode,
+    //             data: CryptobagsJSON.bytecode,
     //             arguments: []
     //         })
     //         .send({
