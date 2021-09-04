@@ -1,7 +1,2 @@
-# Playlist Manager DApp
+Cryptobag Manager
 
-Start UI:
-
-```
-yarn && yarn build && yarn ui
-```
