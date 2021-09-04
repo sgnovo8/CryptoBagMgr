@@ -9,12 +9,12 @@ import 'react-toastify/dist/ReactToastify.css';
 import { PolyjuiceHttpProvider } from '@polyjuice-provider/web3';
 import { AddressTranslator } from 'nervos-godwoken-integration';
 
-import { PlaylistsWrapper } from '../lib/contracts/PlaylistsWrapper';
+import { CryptobagsWrapper } from '../lib/contracts/CryptobagsWrapper';
 import { CONFIG } from '../config';
-import { IPlaylist, ISong } from '../types/Playlist.d';
+import { ICryptobags, ICoin } from '../types/Cryptobags.d';
 
 const DEPLOYED_CONTRACT_ADDRESS = '0xAFb93EF21bC061a88afB539d5fdD926DB942869A';
-const MIN_PLAYLIST_ID = 1;
+const MIN_CRYPTOBAGS_ID = 1;
 
 async function createWeb3() {
     // Modern dapp browsers...
@@ -45,17 +45,17 @@ async function createWeb3() {
 
 export function App() {
     const [web3, setWeb3] = useState<Web3>(null);
-    const [contract, setContract] = useState<PlaylistsWrapper>();
+    const [contract, setContract] = useState<CryptobagsWrapper>();
     const [accounts, setAccounts] = useState<string[]>();
     const [l2Balance, setL2Balance] = useState<bigint>();
     const [polyjuiceAddress, setPolyjuiceAddress] = useState<string | undefined>();
     const [transactionInProgress, setTransactionInProgress] = useState(false);
     const toastId = React.useRef(null);
-    const [currentPlaylistName, setCurrentPlaylistName] = useState<string>();
-    const [currentSongName, setCurrentSongName] = useState<string>();
-    const [selectedPlaylistId, setSelectedPlaylistId] = useState<number>(MIN_PLAYLIST_ID);
-    const [playlist, setPlaylist] = useState<IPlaylist[]>();
-    const [currentSongList, setCurrentSongList] = useState<ISong[]>();
+    const [currentCryptobagsName, setCurrentCryptobagsName] = useState<string>();
+    const [currentCoinName, setCurrentCoinName] = useState<string>();
+    const [selectedCryptobagId, setSelectedCryptobagId] = useState<number>(MIN_CRYPTOBAG_ID);
+    const [cryptobags, setCryptobags] = useState<ICryptobags[]>();
+    const [currentCoinList, setCurrentCoinList] = useState<ICoin[]>();
     const [loading, setLoading] = useState<boolean>();
 
     useEffect(() => {
@@ -91,48 +91,48 @@ export function App() {
     const account = accounts?.[0];
 
     useEffect(() => {
-        if (contract && account) getPlaylists();
+        if (contract && account) getCryptobags();
     }, [contract, account]);
 
     useEffect(() => {
-        if (playlist && playlist.length > 1) {
-            getPlaylistSongs();
+        if (cryptobag && cryptobag.length > 1) {
+            getCryptobagCoins();
         }
-    }, [playlist]);
+    }, [cryptobag]);
 
-    async function getPlaylists() {
-        const total = Number(await contract.getTotalPlaylist(account));
-        const newPlaylist = [];
-        for (let i = MIN_PLAYLIST_ID; i <= total; i++) {
-            const singlePlaylist = await contract.getPlaylist(i, account);
-            newPlaylist.push(singlePlaylist);
+    async function getCryptobags() {
+        const total = Number(await contract.getTotalCryptobag(account));
+        const newCryptobag = [];
+        for (let i = MIN_CRYPTOBAG_ID; i <= total; i++) {
+            const singleCryptobag = await contract.getCryptobag(i, account);
+            newCryptobag.push(singleCryptobag);
         }
-        setPlaylist(newPlaylist);
+        setCryptobag(newCryptobag);
         // toast('Successfully read latest stored value.', { type: 'success' });
     }
 
-    async function getPlaylistSongs() {
-        setCurrentSongList(undefined);
+    async function getCryptobagCoins() {
+        setCurrentCoinList(undefined);
         setLoading(true);
-        const songList = await contract.getPlaylistSongs(selectedPlaylistId, account);
-        const editedSongList = [];
-        for (const song of songList) {
-            const newSong = { id: song[0], playlistId: song[1], name: song[2], creator: song[3] };
-            editedSongList.push(newSong);
+        const coinList = await contract.getCryptobagCoins(selectedcryptobagId, account);
+        const editedCoinList = [];
+        for (const coin of coinList) {
+            const newCoin = { id: coin[0], cryptobagId: coin[1], name: coin[2], creator: coin[3] };
+            editedCoinList.push(newCoin);
         }
-        console.log(songList);
-        setCurrentSongList(editedSongList);
+        console.log(coinList);
+        setCurrentCoinList(editedCoinList);
         setLoading(false);
         // toast('Successfully read latest stored value.', { type: 'success' });
     }
 
-    const createPlaylist = async () => {
-        if (!currentPlaylistName) return;
+    const createCryptobag = async () => {
+        if (!currentCryptobagName) return;
         try {
             setTransactionInProgress(true);
-            await contract.createPlaylist(currentPlaylistName, account);
-            await getPlaylists();
-            toast('Playlist created successfully 🎵', { type: 'success' });
+            await contract.createCryptobag(currentCryptobagName, account);
+            await getCryptobags();
+            toast('Cryptobag created successfully ', { type: 'success' });
         } catch (error) {
             console.error(error);
             toast.error(
@@ -143,14 +143,14 @@ export function App() {
         }
     };
 
-    const addSongToPlaylist = async () => {
-        if (!currentSongName) return;
+    const addCoinToCryptobag = async () => {
+        if (!currentCoinName) return;
 
         try {
             setTransactionInProgress(true);
-            await contract.addSongToPlaylist(currentSongName, selectedPlaylistId, account);
-            getPlaylistSongs();
-            toast('Song added to playlist successfully 🎵', { type: 'success' });
+            await contract.addCoinToCryptobag(currentCoinName, selectedcryptobagId, account);
+            getCryptobagCoins();
+            toast('Coin added to playlist successfully ', { type: 'success' });
         } catch (error) {
             console.error(error);
             toast.error(
@@ -173,7 +173,7 @@ export function App() {
             const _accounts = [(window as any).ethereum.selectedAddress];
             setAccounts(_accounts);
             console.log({ _accounts });
-            const _contract = new PlaylistsWrapper(_web3);
+            const _contract = new CryptobagsWrapper(_web3);
             setContract(_contract);
             if (_accounts && _accounts[0]) {
                 const _l2Balance = BigInt(await _web3.eth.getBalance(_accounts[0]));
@@ -186,7 +186,7 @@ export function App() {
 
     return (
         <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-            <h1>🎼 Playlist Manager </h1>
+            <h1> Cryptobag Manager </h1>
             Your ETH address: <b>{accounts?.[0]}</b>
             <br />
             <br />
@@ -198,59 +198,59 @@ export function App() {
             <br />
             <br />
             <br />
-            Playlist Contract Address :<b>{DEPLOYED_CONTRACT_ADDRESS}</b>
+            Cryptobag Contract Address :<b>{DEPLOYED_CONTRACT_ADDRESS}</b>
             <hr />
             <br />
             <br />
-            <div>😃 Create new playlists and add songs to them</div>
+            <div> Create new cryptobags and add coins to them</div>
             <br />
             <br />
-            <div className="create-playlist">
+            <div className="create-cryptobag">
                 <input
-                    placeholder="Playlist name"
-                    value={currentPlaylistName}
-                    onChange={e => setCurrentPlaylistName(e.target.value)}
+                    placeholder="Cryptobag name"
+                    value={currentCryptobagName}
+                    onChange={e => setCurrentCryptobagName(e.target.value)}
                 />
 
-                <button onClick={createPlaylist}> Create Playlist </button>
+                <button onClick={createCryptobag}> Create Cryptobag </button>
             </div>
             <br />
             <br />
             <br />
             <br />
-            <div className="show-playlist">
-                <label htmlFor="pl">Choose a playlist:</label>
+            <div className="show-cryptobag">
+                <label htmlFor="pl">Choose a cryptobag:</label>
 
                 <select
                     name="pl"
                     id="pl"
-                    onChange={e => setSelectedPlaylistId(Number(e.target.value))}
+                    onChange={e => setSelectedCryptobagId(Number(e.target.value))}
                 >
-                    {playlist?.map(pl => (
+                    {cryptobag?.map(pl => (
                         <option key={pl.id} value={pl.id}>
                             {pl.name}
                         </option>
                     ))}
                 </select>
 
-                <button onClick={getPlaylistSongs}>Show Playlist Songs</button>
+                <button onClick={getCryptobagCoins}>Show Cryptobag Coins</button>
             </div>
             <br />
-            <div className="show-songs">
+            <div className="show-coins">
                 {!currentSongList ||
-                    (currentSongList.length < 1 && <small>No song found! Add first song</small>)}
+                    (currentCoinList.length < 1 && <small>No coin found! Add first coin</small>)}
                 {loading && <LoadingIndicator />}
                 <ul>
-                    {currentSongList?.map(song => (
-                        <li key={song.id}>{song.name}</li>
+                    {currentCoinList?.map(coin => (
+                        <li key={coin.id}>{coin.name}</li>
                     ))}
                 </ul>
                 <input
-                    placeholder="Song name"
-                    onChange={e => setCurrentSongName(e.target.value)}
-                    value={currentSongName}
+                    placeholder="Coin name"
+                    onChange={e => setCurrentCoinName(e.target.value)}
+                    value={currentCoinName}
                 />
-                <button onClick={addSongToPlaylist}>Create Song</button>
+                <button onClick={addCoinToCryptobag}>Create Coin</button>
             </div>
             <ToastContainer />
         </div>
