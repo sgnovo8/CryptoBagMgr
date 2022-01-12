@@ -3,6 +3,8 @@ pragma solidity >=0.8.0;
 contract Cryptobags {
   uint public totalCryptobag;
   uint public totalCoin;
+  
+  //add msg.sender
 
   mapping(uint => Cryptobag) public cryptobags;
   mapping(uint => Coin) public coins;
