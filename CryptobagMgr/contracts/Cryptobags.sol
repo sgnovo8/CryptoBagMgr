@@ -1,6 +1,6 @@
 pragma solidity >=0.8.0;
 
-//review
+//review constructors
 
 contract Cryptobags {
   uint public totalCryptobag;
